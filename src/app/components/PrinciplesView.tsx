@@ -1,5 +1,7 @@
+import { useEffect, useRef, useState } from 'react'
 import { usePostHog } from 'posthog-js/react'
 import { PrincipleCard } from './PrincipleCard'
+import { CategoryMenu } from './CategoryMenu'
 import {
   Eye,
   BarChart2,
@@ -605,79 +607,145 @@ const groupConfig: Record<
   },
 }
 
+function groupToId(group: string) {
+  return group.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+}
+
 export function PrinciplesView() {
   const posthog = usePostHog()
+  const [menuOpen, setMenuOpen] = useState(true)
+  const [activeGroup, setActiveGroup] = useState<string | null>(null)
+  const sectionRefs = useRef<Record<string, HTMLElement>>({})
 
   const groupedPrinciples = principles.reduce(
     (acc, principle) => {
-      if (!acc[principle.group]) {
-        acc[principle.group] = []
-      }
+      if (!acc[principle.group]) acc[principle.group] = []
       acc[principle.group].push(principle)
       return acc
     },
     {} as Record<string, Principle[]>,
   )
 
+  const groups = Object.entries(groupedPrinciples).map(([group, items]) => ({
+    label: group,
+    id: groupToId(group),
+    color: groupConfig[group].color,
+    count: items.length,
+    icon: groupConfig[group].icons[0],
+  }))
+
+  // Track active section via IntersectionObserver
+  useEffect(() => {
+    const NAVBAR_HEIGHT = 56
+    const observers: IntersectionObserver[] = []
+
+    groups.forEach(({ id }) => {
+      const el = sectionRefs.current[id]
+      if (!el) return
+
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) setActiveGroup(id)
+        },
+        {
+          rootMargin: `-${NAVBAR_HEIGHT}px 0px -60% 0px`,
+          threshold: 0,
+        },
+      )
+      observer.observe(el)
+      observers.push(observer)
+    })
+
+    return () => observers.forEach((o) => o.disconnect())
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  function scrollToGroup(id: string) {
+    const el = sectionRefs.current[id]
+    if (!el) return
+    const NAVBAR_HEIGHT = 56
+    const top = el.getBoundingClientRect().top + window.scrollY - NAVBAR_HEIGHT - 24
+    window.scrollTo({ top, behavior: 'smooth' })
+    posthog.capture('category_nav_clicked', { category: id })
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <header className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">AI Design Principles</h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            A comprehensive guide to designing human-centered AI systems that prioritize
-            collaboration, transparency, and reliability
-          </p>
-        </header>
+      <div className="flex">
+        {/* Sticky sidebar */}
+        <CategoryMenu
+          groups={groups}
+          activeGroup={activeGroup}
+          isOpen={menuOpen}
+          onToggle={() => setMenuOpen((v) => !v)}
+          onSelect={scrollToGroup}
+        />
 
-        <div className="space-y-12">
-          {Object.entries(groupedPrinciples).map(([group, groupPrinciples]) => {
-            const config = groupConfig[group]
+        {/* Main content */}
+        <div className="flex-1 min-w-0 px-6 py-12 lg:px-10">
+          <header className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-gray-900 mb-3">AI Design Principles</h1>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              A comprehensive guide to designing human-centered AI systems that prioritize
+              collaboration, transparency, and reliability
+            </p>
+          </header>
 
-            return (
-              <section key={group} className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-1 h-8 rounded-full"
-                    style={{ backgroundColor: config.color }}
-                  />
-                  <h2 className="text-2xl font-semibold text-gray-900">{group}</h2>
-                  <span
-                    className="text-sm px-3 py-1 rounded-full"
-                    style={{
-                      backgroundColor: `${config.color}15`,
-                      color: config.color,
-                    }}
-                  >
-                    {groupPrinciples.length}{' '}
-                    {groupPrinciples.length === 1 ? 'principle' : 'principles'}
-                  </span>
-                </div>
+          <div className="space-y-12">
+            {Object.entries(groupedPrinciples).map(([group, groupPrinciples]) => {
+              const config = groupConfig[group]
+              const id = groupToId(group)
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {groupPrinciples.map((principle, index) => {
-                    const Icon = config.icons[index % config.icons.length]
-                    return (
-                      <PrincipleCard
-                        key={principle.name}
-                        name={principle.name}
-                        description={principle.description}
-                        example={principle.example}
-                        icon={Icon}
-                        accentColor={config.color}
-                        onView={() =>
-                          posthog.capture('principle_viewed', {
-                            principle_name: principle.name,
-                            group: principle.group,
-                          })
-                        }
-                      />
-                    )
-                  })}
-                </div>
-              </section>
-            )
-          })}
+              return (
+                <section
+                  key={group}
+                  id={id}
+                  ref={(el) => { if (el) sectionRefs.current[id] = el }}
+                  className="space-y-6 scroll-mt-20"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-1 h-8 rounded-full"
+                      style={{ backgroundColor: config.color }}
+                    />
+                    <h2 className="text-2xl font-semibold text-gray-900">{group}</h2>
+                    <span
+                      className="text-sm px-3 py-1 rounded-full"
+                      style={{
+                        backgroundColor: `${config.color}15`,
+                        color: config.color,
+                      }}
+                    >
+                      {groupPrinciples.length}{' '}
+                      {groupPrinciples.length === 1 ? 'principle' : 'principles'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {groupPrinciples.map((principle, index) => {
+                      const Icon = config.icons[index % config.icons.length]
+                      return (
+                        <PrincipleCard
+                          key={principle.name}
+                          name={principle.name}
+                          description={principle.description}
+                          example={principle.example}
+                          icon={Icon}
+                          accentColor={config.color}
+                          onView={() =>
+                            posthog.capture('principle_viewed', {
+                              principle_name: principle.name,
+                              group: principle.group,
+                            })
+                          }
+                        />
+                      )
+                    })}
+                  </div>
+                </section>
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>
