@@ -506,6 +506,14 @@ const principles: Principle[] = [
     example:
       'An AI contract-review tool displays a persistent \'Works best for\' panel noting it was trained on English-language commercial contracts and performs less reliably on construction or IP agreements. When a user uploads a document outside that scope, a contextual warning appears before the analysis runs.',
   },
+  {
+    group: 'Adoption',
+    name: 'Vigilance Calibration (Countering User Drift)',
+    description:
+      'Prevents "automation bias" and skill atrophy by periodically re-engaging the user\'s critical thinking through "forced friction" or "active verification." This ensures users remain capable of detecting AI failures.',
+    example:
+      'A site inspection AI occasionally hides its automated findings and asks the inspector to manually mark structural cracks on a drone feed first. The system only reveals its analysis after the human interaction, ensuring the inspector continues to exercise the diagnostic skills required for high-stakes safety oversight.',
+  },
 
   {
     group: 'Data',
@@ -635,7 +643,7 @@ const groupConfig: Record<
     color: '#EC4899',
   },
   Adoption: {
-    icons: [Rocket, ToggleRight, Crown, Cpu, TrendingUp, GraduationCap, Info],
+    icons: [Rocket, ToggleRight, Crown, Cpu, TrendingUp, GraduationCap, Info, Activity],
     color: '#F59E0B',
   },
   Data: {
