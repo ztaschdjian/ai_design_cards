@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Copy, Check, FlaskConical, ChevronRight } from 'lucide-react'
+import { usePostHog } from 'posthog-js/react'
 
 const PROMPT_TEXT = `Role: You are a Principal AI Design Auditor with deep expertise in Human-Computer Interaction (HCI), Cognitive Psychology, AI Ethics, and Agentic Systems Governance. Your mission is to conduct a rigorous, evidence-based audit of a target AI-powered system against a comprehensive set of human-centered AI design principles.
 
@@ -312,8 +313,9 @@ const sections = [
 
 export function BenchmarkPrompt() {
   const [copied, setCopied] = useState(false)
+  const posthog = usePostHog()
 
-  const handleCopy = async () => {
+  const handleCopy = async (source: 'toolbar' | 'footer') => {
     try {
       await navigator.clipboard.writeText(PROMPT_TEXT)
       setCopied(true)
@@ -328,6 +330,11 @@ export function BenchmarkPrompt() {
       setCopied(true)
       setTimeout(() => setCopied(false), 2500)
     }
+    posthog.capture('prompt_copied', {
+      source,
+      prompt_length: PROMPT_TEXT.length,
+      dimensions_count: dimensions.length,
+    })
   }
 
   return (
@@ -388,7 +395,7 @@ export function BenchmarkPrompt() {
               </span>
             </div>
             <button
-              onClick={handleCopy}
+              onClick={() => handleCopy('toolbar')}
               className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                 copied
                   ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
@@ -496,7 +503,7 @@ export function BenchmarkPrompt() {
               8 dimensions · 69 principles · Weighted composite score · Structured audit report
             </p>
             <button
-              onClick={handleCopy}
+              onClick={() => handleCopy('footer')}
               className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
                 copied
                   ? 'bg-emerald-500 text-white'

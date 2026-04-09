@@ -1,7 +1,16 @@
-import { NavLink, Outlet } from 'react-router'
+import { useEffect } from 'react'
+import { NavLink, Outlet, useLocation } from 'react-router'
 import { LayoutGrid, FlaskConical } from 'lucide-react'
+import { usePostHog } from 'posthog-js/react'
 
 export function Root() {
+  const posthog = usePostHog()
+  const location = useLocation()
+
+  useEffect(() => {
+    posthog.capture('$pageview', { $current_url: window.location.href })
+  }, [location.pathname, posthog])
+
   return (
     <div className="min-h-screen flex flex-col">
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200 shadow-sm">

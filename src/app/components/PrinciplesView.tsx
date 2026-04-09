@@ -1,3 +1,4 @@
+import { usePostHog } from 'posthog-js/react'
 import { PrincipleCard } from './PrincipleCard'
 import {
   Eye,
@@ -605,6 +606,8 @@ const groupConfig: Record<
 }
 
 export function PrinciplesView() {
+  const posthog = usePostHog()
+
   const groupedPrinciples = principles.reduce(
     (acc, principle) => {
       if (!acc[principle.group]) {
@@ -662,6 +665,12 @@ export function PrinciplesView() {
                         example={principle.example}
                         icon={Icon}
                         accentColor={config.color}
+                        onView={() =>
+                          posthog.capture('principle_viewed', {
+                            principle_name: principle.name,
+                            group: principle.group,
+                          })
+                        }
                       />
                     )
                   })}

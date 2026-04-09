@@ -6,6 +6,7 @@ interface PrincipleCardProps {
   example: string
   icon: LucideIcon
   accentColor: string
+  onView?: () => void
 }
 
 export function PrincipleCard({
@@ -14,10 +15,12 @@ export function PrincipleCard({
   example,
   icon: Icon,
   accentColor,
+  onView,
 }: PrincipleCardProps) {
   return (
     <div
       className="group relative bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-200"
+      onMouseEnter={onView}
       style={{
         borderTopColor: accentColor,
         borderTopWidth: '3px',
