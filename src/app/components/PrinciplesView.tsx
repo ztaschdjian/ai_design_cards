@@ -613,7 +613,7 @@ function groupToId(group: string) {
 
 export function PrinciplesView() {
   const posthog = usePostHog()
-  const [menuOpen, setMenuOpen] = useState(true)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [activeGroup, setActiveGroup] = useState<string | null>(null)
   const sectionRefs = useRef<Record<string, HTMLElement>>({})
 

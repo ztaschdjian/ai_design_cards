@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, type LucideIcon } from 'lucide-react'
+import { Menu, X, type LucideIcon } from 'lucide-react'
 
 export interface CategoryGroup {
   label: string
@@ -33,12 +33,12 @@ export function CategoryMenu({
       <button
         onClick={onToggle}
         className="absolute -right-3 top-5 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-gray-200 shadow-sm text-gray-500 hover:text-gray-800 hover:shadow-md transition-all duration-150"
-        aria-label={isOpen ? 'Collapse menu' : 'Expand menu'}
+        aria-label={isOpen ? 'Close menu' : 'Open menu'}
       >
         {isOpen ? (
-          <ChevronLeft className="w-3.5 h-3.5" />
+          <X className="w-3.5 h-3.5" />
         ) : (
-          <ChevronRight className="w-3.5 h-3.5" />
+          <Menu className="w-3.5 h-3.5" />
         )}
       </button>
 
