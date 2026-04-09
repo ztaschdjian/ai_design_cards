@@ -6,6 +6,7 @@ interface PrincipleCardProps {
   example: string
   icon: LucideIcon
   accentColor: string
+  highlighted?: boolean
   onView?: () => void
 }
 
@@ -15,15 +16,19 @@ export function PrincipleCard({
   example,
   icon: Icon,
   accentColor,
+  highlighted = false,
   onView,
 }: PrincipleCardProps) {
   return (
     <div
-      className="group relative bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-200"
+      className={`group relative bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border ${
+        highlighted ? 'border-2 shadow-lg scale-[1.02]' : 'border-gray-200'
+      }`}
       onMouseEnter={onView}
       style={{
         borderTopColor: accentColor,
         borderTopWidth: '3px',
+        ...(highlighted ? { boxShadow: `0 0 0 3px ${accentColor}40` } : {}),
       }}
     >
       <div className="p-6">
